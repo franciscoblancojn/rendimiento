@@ -4,7 +4,7 @@ Todos los cambios importantes del plugin Rendimiento. Formato basado en [Keep a 
 
 > ✍️ Antes de publicar, agrega arriba una sección `## [Sin publicar]` con los cambios. `npm run push-v -- patch|minor|major` la renombra a `## [X.Y.Z] - fecha`, y no publica si esa sección no existe.
 
-## [Sin publicar]
+## [1.1.0] - 2026-11-09
 
 ### ✨ Añadido
 - 🧩 Dos pestañas nuevas, **Excluir CSS** y **Excluir JS**: analizan la home, listan sus archivos, calculan un % aproximado de «innecesario» (0 = obligatorio, 100 = se puede eliminar) y permiten añadirlos a una lista de exclusión.

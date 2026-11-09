@@ -2,7 +2,7 @@
 
 > Detecta categorías de productos vacías y páginas sin enlaces desde la home, y permite eliminarlas.
 
-**Versión:** 1.0.1 · **WordPress:** 5.8+ · **PHP:** 7.4+ · **WooCommerce:** opcional · **Licencia:** GPLv2+
+**Versión:** 1.1.0 · **WordPress:** 5.8+ · **PHP:** 7.4+ · **WooCommerce:** opcional · **Licencia:** GPLv2+
 
 📋 [Registro de cambios](CHANGELOG.md) · 🤖 [Reglas para IAs](AGENTS.md) · 📦 [Releases](https://github.com/franciscoblancojn/rendimiento/releases)
 
