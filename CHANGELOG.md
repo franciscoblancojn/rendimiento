@@ -4,7 +4,7 @@ Todos los cambios importantes del plugin Rendimiento. Formato basado en [Keep a 
 
 > ✍️ Antes de publicar, agrega arriba una sección `## [Sin publicar]` con los cambios. `npm run push-v -- patch|minor|major` la renombra a `## [X.Y.Z] - fecha`, y no publica si esa sección no existe.
 
-## [Sin publicar]
+## [1.0.1] - 2026-11-09
 
 ### 🐛 Corregido
 - 🗑️ Las páginas enviadas a la papelera desaparecen de la tabla de huérfanas al recargar. Antes seguían apareciendo porque el informe guardado en el transient no se actualizaba; ahora se quitan al borrar y el informe descarta también lo que ya no está publicado.

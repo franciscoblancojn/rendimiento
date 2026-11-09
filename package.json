@@ -1,6 +1,6 @@
 {
   "name": "rendimiento",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Detecta categorías de productos vacías y páginas sin enlaces desde la home, y permite eliminarlas.",
   "scripts": {
