@@ -15,6 +15,14 @@ $TAGS = [
         'key' => 'paginas',
         'title' => 'Páginas huérfanas',
     ],
+    [
+        'key' => 'css',
+        'title' => 'Excluir CSS',
+    ],
+    [
+        'key' => 'js',
+        'title' => 'Excluir JS',
+    ],
 ];
 $keys = wp_list_pluck($TAGS, 'key');
 $requested = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification
