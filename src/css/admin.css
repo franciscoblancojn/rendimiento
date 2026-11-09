@@ -1,0 +1,215 @@
+/* Rendimiento — admin. Prefijo rnd- (las clases fwue- son de wordpress_utils). */
+.rnd-page .rnd-version {
+    font-size: 13px;
+    font-weight: 400;
+    color: #646970;
+}
+
+.rnd-page .tab-content {
+    display: none;
+}
+
+.rnd-page .tab-content.nav-tab-active {
+    display: block;
+}
+
+.rnd-page .fwue-message {
+    max-width: 900px;
+}
+
+.rnd-section {
+    max-width: 1200px;
+}
+
+.rnd-intro {
+    max-width: 900px;
+    font-size: 14px;
+}
+
+.rnd-muted {
+    color: #646970;
+    font-size: 12px;
+}
+
+.rnd-badge {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 6px;
+    border-radius: 3px;
+    background: #f0f0f1;
+    color: #646970;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+/* Tarjetas resumen */
+.rnd-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.rnd-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 170px;
+    padding: 14px 18px;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid #2271b1;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.rnd-card--ok {
+    border-left-color: #00a32a;
+}
+
+.rnd-card--warn {
+    border-left-color: #dba617;
+}
+
+.rnd-card__num {
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.rnd-card__label {
+    margin-top: 4px;
+    color: #646970;
+    font-size: 12px;
+}
+
+/* Tablas */
+.rnd-table {
+    margin-top: 8px;
+}
+
+.rnd-table td,
+.rnd-table th {
+    vertical-align: middle;
+}
+
+.rnd-num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.rnd-url {
+    max-width: 420px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rnd-actions {
+    white-space: nowrap;
+}
+
+.rnd-actions a,
+.rnd-actions button {
+    margin-right: 8px;
+}
+
+.rnd-actions .button-link {
+    color: #b32d2e;
+}
+
+.rnd-actions .button-link:hover {
+    color: #8a2424;
+}
+
+/* Ajustes */
+.rnd-settings {
+    max-width: 900px;
+    margin-top: 12px;
+    padding: 4px 20px 12px;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.rnd-settings .form-table th {
+    width: 200px;
+}
+
+.rnd-inline-fields label {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-right: 18px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.rnd-inline-fields input {
+    width: 110px;
+}
+
+.rnd-types label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 18px 6px 0;
+}
+
+/* Progreso */
+.rnd-progress {
+    max-width: 720px;
+    margin: 10px 0 0;
+}
+
+.rnd-progress__bar {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #f0f0f1;
+}
+
+.rnd-progress__bar span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #2271b1;
+    transition: width .3s;
+}
+
+.rnd-progress__text {
+    min-height: 18px;
+    margin: 6px 0 0;
+    color: #646970;
+    font-size: 12px;
+}
+
+.rnd-message {
+    position: static;
+    margin: 12px 0;
+}
+
+.rnd-summary {
+    color: #646970;
+}
+
+.rnd-report {
+    margin-top: 18px;
+}
+
+.rnd-errors {
+    max-width: 900px;
+    margin: 10px 0;
+}
+
+.rnd-errors summary {
+    cursor: pointer;
+    color: #646970;
+}
+
+.rnd-errors ul {
+    max-height: 220px;
+    overflow: auto;
+    padding: 8px 12px;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    background: #fff;
+}
