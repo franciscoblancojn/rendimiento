@@ -91,6 +91,11 @@ class RND_API_SCAN
         }
 
         $result = RND_PAGES::trash($ids);
+        if (!empty($result['trashed'])) {
+            // El informe se guarda en un transient: sin esto, las páginas enviadas a la
+            // papelera seguirían apareciendo en la tabla al recargar.
+            $result['removed_from_report'] = RND_CRAWLER::remove_orphans($result['trashed']);
+        }
         RND_LOG_SERVICE::add('eliminar_paginas', $result);
 
         wp_send_json_success($result);

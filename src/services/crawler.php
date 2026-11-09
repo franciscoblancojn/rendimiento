@@ -215,8 +215,115 @@ class RND_CRAWLER
     public static function report()
     {
         $report = get_transient(self::REPORT);
+        if (!is_array($report)) {
+            return null;
+        }
 
-        return is_array($report) ? $report : null;
+        return self::prune($report);
+    }
+
+    /**
+     * Quita del informe las páginas indicadas (p. ej. las enviadas a la papelera).
+     *
+     * @param int[] $ids
+     * @return int Cuántas entradas se quitaron.
+     */
+    public static function remove_orphans($ids)
+    {
+        $ids = array_values(array_filter(array_map('absint', (array) $ids)));
+        if (!$ids) {
+            return 0;
+        }
+
+        $report = get_transient(self::REPORT);
+        if (!is_array($report) || empty($report['orphans'])) {
+            return 0;
+        }
+
+        $drop = array_fill_keys($ids, true);
+        $kept = [];
+        foreach ($report['orphans'] as $item) {
+            if (!isset($drop[(int) $item['id']])) {
+                $kept[] = $item;
+            }
+        }
+
+        $removed = count($report['orphans']) - count($kept);
+        if ($removed <= 0) {
+            return 0;
+        }
+
+        $report['orphans'] = $kept;
+        $report['orphan_count'] = max(count($kept), (int) $report['orphan_count'] - $removed);
+        set_transient(self::REPORT, $report, DAY_IN_SECONDS);
+
+        return $removed;
+    }
+
+    /**
+     * Descarta del informe lo que ya no está publicado (papelera, borrado, borrador…),
+     * para que la tabla no muestre páginas que ya no existen.
+     */
+    private static function prune($report)
+    {
+        if (empty($report['orphans'])) {
+            return $report;
+        }
+
+        $ids = [];
+        foreach ($report['orphans'] as $item) {
+            $ids[] = (int) $item['id'];
+        }
+        $published = self::published_ids($ids);
+
+        $kept = [];
+        foreach ($report['orphans'] as $item) {
+            if (isset($published[(int) $item['id']])) {
+                $kept[] = $item;
+            }
+        }
+
+        $removed = count($report['orphans']) - count($kept);
+        if ($removed <= 0) {
+            return $report;
+        }
+
+        $report['orphans'] = $kept;
+        $report['orphan_count'] = max(count($kept), (int) $report['orphan_count'] - $removed);
+        set_transient(self::REPORT, $report, DAY_IN_SECONDS);
+
+        return $report;
+    }
+
+    /**
+     * IDs de la lista que siguen publicados, en una sola consulta.
+     *
+     * @param int[] $ids
+     * @return array<int,bool>
+     */
+    private static function published_ids($ids)
+    {
+        global $wpdb;
+
+        $ids = array_values(array_filter(array_map('absint', (array) $ids)));
+        if (!$ids) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+        $found = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND ID IN ($placeholders)",
+                $ids
+            )
+        );
+
+        $out = [];
+        foreach ((array) $found as $id) {
+            $out[(int) $id] = true;
+        }
+
+        return $out;
     }
 
     public static function status()

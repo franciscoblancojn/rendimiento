@@ -68,7 +68,7 @@ class RND_PAGES
      */
     public static function trash($ids)
     {
-        $result = ['deleted' => 0, 'skipped' => [], 'errors' => []];
+        $result = ['deleted' => 0, 'trashed' => [], 'skipped' => [], 'errors' => []];
         $types = self::types();
         $protected = self::protected_ids();
 
@@ -99,6 +99,7 @@ class RND_PAGES
             $trashed = wp_trash_post($id);
             if ($trashed) {
                 $result['deleted']++;
+                $result['trashed'][] = $id;
             } else {
                 $result['errors'][] = ['id' => $id, 'reason' => 'No se pudo enviar a la papelera'];
             }
