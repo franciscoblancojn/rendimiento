@@ -216,6 +216,22 @@ jQuery(function ($) {
         $section.find('.rnd-progress__text').text(text);
     }
 
+    /**
+     * Refresca en sitio el informe y la lista de exclusión de una pestaña, sin recargar.
+     */
+    function rnd_assets_refresh(type) {
+        var $section = rnd_asset_section(type);
+        return rnd_post('assets_render', { type: type }).then(function (res) {
+            $section.find('.rnd-assets-report').html(res.report);
+            $section.find('.rnd-assets-excluded').html(res.excluded);
+            return res;
+        });
+    }
+
+    function rnd_assets_refresh_all() {
+        return $.when(rnd_assets_refresh('css'), rnd_assets_refresh('js'));
+    }
+
     function rnd_assets_run(type, first) {
         if (busy) {
             return;
@@ -235,15 +251,16 @@ jQuery(function ($) {
 
         var request = first ? rnd_post('assets_start') : rnd_post('assets_batch');
         request.then(next).then(function (report) {
-            busy = false;
-            rnd_message(
-                $section.find('.rnd-assets-message'),
-                'Análisis terminado: ' + report.css + ' CSS y ' + report.js + ' JS. Recargando…',
-                'ok'
-            );
-            window.setTimeout(function () {
-                window.location.reload();
-            }, 1200);
+            return rnd_assets_refresh_all().then(function () {
+                busy = false;
+                $section.find('.rnd-assets-start, .rnd-assets-continue').prop('disabled', false);
+                $section.find('.rnd-assets-continue').remove();
+                rnd_message(
+                    $section.find('.rnd-assets-message'),
+                    'Análisis terminado: ' + report.css + ' CSS y ' + report.js + ' JS.',
+                    'ok'
+                );
+            });
         }, function (error) {
             busy = false;
             $section.find('.rnd-assets-start, .rnd-assets-continue').prop('disabled', false);
@@ -275,11 +292,10 @@ jQuery(function ($) {
         busy = true;
         rnd_message($section.find('.rnd-assets-message'), 'Guardando exclusiones…', '');
         rnd_post('assets_exclude', { items: items }).then(function (res) {
-            busy = false;
-            rnd_message($section.find('.rnd-assets-message'), 'Listo: ' + res.excluded + ' archivo(s) excluido(s). Recargando…', 'ok');
-            window.setTimeout(function () {
-                window.location.reload();
-            }, 900);
+            return rnd_assets_refresh_all().then(function () {
+                busy = false;
+                rnd_message($section.find('.rnd-assets-message'), 'Listo: ' + res.excluded + ' archivo(s) excluido(s).', 'ok');
+            });
         }, function (error) {
             busy = false;
             rnd_message($section.find('.rnd-assets-message'), error || 'No se pudo guardar.', 'error');
@@ -324,11 +340,10 @@ jQuery(function ($) {
         var $section = rnd_asset_section(type);
         rnd_message($section.find('.rnd-assets-message'), 'Guardando…', '');
         rnd_post('assets_include', { items: [{ type: type, key: key }] }).then(function () {
-            busy = false;
-            rnd_message($section.find('.rnd-assets-message'), 'Archivo incluido de nuevo. Recargando…', 'ok');
-            window.setTimeout(function () {
-                window.location.reload();
-            }, 900);
+            return rnd_assets_refresh_all().then(function () {
+                busy = false;
+                rnd_message($section.find('.rnd-assets-message'), 'Archivo incluido de nuevo.', 'ok');
+            });
         }, function (error) {
             busy = false;
             rnd_message($section.find('.rnd-assets-message'), error || 'No se pudo guardar.', 'error');
@@ -338,5 +353,29 @@ jQuery(function ($) {
     $page.on('change', '.rnd-asset-all', function () {
         var type = $(this).data('type');
         rnd_asset_section(type).find('.rnd-asset-check').not(':disabled').prop('checked', this.checked);
+    });
+
+    // Los ajustes se guardan por AJAX: no recargan ni pierden la lista analizada.
+    $page.on('submit', '.rnd-settings', function (event) {
+        event.preventDefault();
+        if (busy) {
+            return;
+        }
+        var $form = $(this);
+        busy = true;
+        var $message = $form.find('.rnd-settings-message');
+        rnd_message($message, 'Guardando…', '');
+        rnd_post('assets_config', {
+            enabled: $form.find('input[name="enabled"]').is(':checked') ? 1 : 0,
+            test_mode: $form.find('input[name="test_mode"]').is(':checked') ? 1 : 0
+        }).then(function () {
+            return rnd_assets_refresh_all().then(function () {
+                busy = false;
+                rnd_message($message, 'Ajustes guardados.', 'ok');
+            });
+        }, function (error) {
+            busy = false;
+            rnd_message($message, error || 'No se pudieron guardar los ajustes.', 'error');
+        });
     });
 });

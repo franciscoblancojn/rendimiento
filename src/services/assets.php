@@ -13,6 +13,8 @@
  */
 class RND_ASSETS
 {
+    // Opciones (no transients): el informe y el estado deben sobrevivir a la purga de la
+    // caché/objeto, que es justo lo que ocurre al excluir un archivo.
     const OPTION = 'rnd_excluded_assets';
     const CONFIG = 'rnd_assets_config';
     const STATE = 'rnd_assets_state';
@@ -339,10 +341,10 @@ class RND_ASSETS
             return ['error' => 'No se encontraron archivos CSS ni JS en la home.'];
         }
 
-        set_transient(self::HOME, [
+        update_option(self::HOME, [
             'tokens' => self::html_tokens($html),
             'inline' => self::inline_scripts($html),
-        ], HOUR_IN_SECONDS);
+        ], false);
 
         $state = [
             'home' => $home,
@@ -353,7 +355,7 @@ class RND_ASSETS
             'errors' => [],
             'started' => time(),
         ];
-        set_transient(self::STATE, $state, HOUR_IN_SECONDS);
+        update_option(self::STATE, $state, false);
 
         return self::summary($state);
     }
@@ -410,12 +412,12 @@ class RND_ASSETS
      */
     public static function analyze_batch()
     {
-        $state = get_transient(self::STATE);
+        $state = get_option(self::STATE);
         if (!is_array($state)) {
             return ['error' => 'No hay un análisis de CSS/JS en curso.'];
         }
 
-        $home = get_transient(self::HOME);
+        $home = get_option(self::HOME);
         if (!is_array($home)) {
             $home = ['tokens' => ['classes' => [], 'ids' => [], 'tags' => []], 'inline' => ''];
         }
@@ -434,7 +436,7 @@ class RND_ASSETS
             }
         }
 
-        set_transient(self::STATE, $state, HOUR_IN_SECONDS);
+        update_option(self::STATE, $state, false);
 
         return self::summary($state);
     }
@@ -444,7 +446,7 @@ class RND_ASSETS
      */
     public static function analyze_finish()
     {
-        $state = get_transient(self::STATE);
+        $state = get_option(self::STATE);
         if (!is_array($state)) {
             return ['error' => 'No hay un análisis de CSS/JS en curso.'];
         }
@@ -481,9 +483,9 @@ class RND_ASSETS
             'combined_count' => $combined,
             'duration' => max(0, time() - (int) $state['started']),
         ];
-        set_transient(self::REPORT, $report, DAY_IN_SECONDS);
-        delete_transient(self::STATE);
-        delete_transient(self::HOME);
+        update_option(self::REPORT, $report, false);
+        delete_option(self::STATE);
+        delete_option(self::HOME);
 
         RND_LOG_SERVICE::add('analisis_assets', [
             'home' => $state['home'],
@@ -505,16 +507,47 @@ class RND_ASSETS
 
     public static function status()
     {
-        $state = get_transient(self::STATE);
+        $state = get_option(self::STATE);
+        if (!is_array($state)) {
+            return null;
+        }
 
-        return is_array($state) ? self::summary($state) : null;
+        // Un análisis abandonado no debe quedar para siempre en la base de datos.
+        if (!empty($state['started']) && (time() - (int) $state['started']) > HOUR_IN_SECONDS) {
+            delete_option(self::STATE);
+            delete_option(self::HOME);
+            return null;
+        }
+
+        return self::summary($state);
     }
 
     public static function report()
     {
-        $report = get_transient(self::REPORT);
+        $report = get_option(self::REPORT);
 
         return is_array($report) ? $report : null;
+    }
+
+    /**
+     * Resultados del informe para una pestaña (css|js), ordenados por % innecesario.
+     */
+    public static function results_for($type)
+    {
+        $report = self::report();
+        $results = [];
+        if ($report && !empty($report['results'])) {
+            foreach ($report['results'] as $item) {
+                if (isset($item['type']) && $type === $item['type']) {
+                    $results[] = $item;
+                }
+            }
+        }
+        usort($results, function ($a, $b) {
+            return (int) $b['score'] - (int) $a['score'];
+        });
+
+        return $results;
     }
 
     private static function summary($state)

@@ -4,6 +4,13 @@ Todos los cambios importantes del plugin Rendimiento. Formato basado en [Keep a 
 
 > ✍️ Antes de publicar, agrega arriba una sección `## [Sin publicar]` con los cambios. `npm run push-v -- patch|minor|major` la renombra a `## [X.Y.Z] - fecha`, y no publica si esa sección no existe.
 
+## [1.1.2] - 2026-11-09
+
+### 🐛 Corregido
+- 🔄 Al excluir o incluir un archivo ya **no se recarga la página** ni se pierde la lista analizada. La tabla y la lista de exclusión se actualizan por AJAX en el sitio.
+- 💾 El informe, el estado y los tokens del análisis se guardan en **opciones** (`rnd_assets_report`, `rnd_assets_state`, `rnd_assets_home`) en lugar de transients, para que sobrevivan a la purga de caché/objeto que se hace al excluir.
+- ⚙️ El formulario de ajustes (interruptor general y modo prueba) también se guarda por AJAX, sin recargar.
+
 ## [1.1.1] - 2026-11-09
 
 ### 🐛 Corregido

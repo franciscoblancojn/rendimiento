@@ -2,7 +2,7 @@
 
 > Detecta categorías de productos vacías y páginas sin enlaces desde la home, y permite eliminarlas.
 
-**Versión:** 1.1.1 · **WordPress:** 5.8+ · **PHP:** 7.4+ · **WooCommerce:** opcional · **Licencia:** GPLv2+
+**Versión:** 1.1.2 · **WordPress:** 5.8+ · **PHP:** 7.4+ · **WooCommerce:** opcional · **Licencia:** GPLv2+
 
 📋 [Registro de cambios](CHANGELOG.md) · 🤖 [Reglas para IAs](AGENTS.md) · 📦 [Releases](https://github.com/franciscoblancojn/rendimiento/releases)
 
@@ -52,6 +52,8 @@ El plugin añade el menú **Rendimiento** con cuatro pestañas: dos análisis de
   visitantes siguen viendo el sitio normal.
 - Al cambiar la lista se purga automáticamente la caché de LiteSpeed (y WP Rocket si está activo). Si usas
   otra caché, púrgala a mano para que el cambio se vea.
+- Todas las acciones (analizar, excluir, incluir y guardar ajustes) son **AJAX**: actualizan la tabla y la
+  lista en el sitio, sin recargar la página ni perder el informe analizado.
 - Solo detecta archivos enlazados desde el HTML de la home; los `<style>`/`<script>` inline y los
   añadidos por JavaScript no se pueden excluir desde aquí.
 

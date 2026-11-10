@@ -15,7 +15,7 @@ class RND_API_ASSETS
 
     public static function init()
     {
-        foreach (['assets_start', 'assets_batch', 'assets_finish', 'assets_exclude', 'assets_include'] as $action) {
+        foreach (['assets_start', 'assets_batch', 'assets_finish', 'assets_exclude', 'assets_include', 'assets_render', 'assets_config'] as $action) {
             add_action('wp_ajax_rnd_' . $action, [self::class, $action]);
         }
         add_action('admin_post_' . self::ACTION_CONFIG, [self::class, 'save_config']);
@@ -121,6 +121,64 @@ class RND_API_ASSETS
         RND_ASSETS::purge_cache();
         RND_LOG_SERVICE::add('incluir_assets', ['count' => $removed]);
         wp_send_json_success(['removed' => $removed]);
+    }
+
+    /**
+     * Devuelve el HTML actualizado del informe y de la lista de exclusión de una pestaña.
+     * Lo usa la UI para refrescar en sitio tras analizar, excluir o incluir, sin recargar.
+     */
+    public static function assets_render()
+    {
+        self::guard();
+
+        $type = sanitize_key($_POST['type'] ?? '');
+        if (!in_array($type, RND_ASSETS::TYPES, true)) {
+            wp_send_json_error('Tipo de archivo no válido.');
+        }
+
+        $label = 'css' === $type ? 'CSS' : 'JS';
+        $report = RND_ASSETS::report();
+        $excluded = RND_ASSETS::exclusions($type);
+        $results = RND_ASSETS::results_for($type);
+
+        ob_start();
+        require RND_DIR . 'src/page/sections/assets-report.php';
+        $report_html = ob_get_clean();
+
+        ob_start();
+        require RND_DIR . 'src/page/sections/assets-excluded.php';
+        $excluded_html = ob_get_clean();
+
+        wp_send_json_success([
+            'report' => $report_html,
+            'excluded' => $excluded_html,
+            'excluded_count' => count($excluded),
+            'results_count' => count($results),
+        ]);
+    }
+
+    /**
+     * Guarda el interruptor general y el modo prueba por AJAX (sin recargar la página).
+     */
+    public static function assets_config()
+    {
+        self::guard();
+
+        $enabled = !empty($_POST['enabled']);
+        $test_mode = !empty($_POST['test_mode']);
+
+        RND_ASSETS::save_config($enabled, $test_mode);
+        RND_ASSETS::purge_cache();
+
+        RND_LOG_SERVICE::add('guardar_ajustes_assets', [
+            'enabled' => $enabled,
+            'test_mode' => $test_mode,
+        ]);
+
+        wp_send_json_success([
+            'enabled' => $enabled ? 1 : 0,
+            'test_mode' => $test_mode ? 1 : 0,
+        ]);
     }
 
     /**
