@@ -44,6 +44,16 @@ jQuery(function ($) {
         }).get();
     }
 
+    /**
+     * Pone o quita el loader de un botón mientras dura la acción.
+     */
+    function rnd_loading($button, on) {
+        if (!$button || !$button.length) {
+            return;
+        }
+        $button.toggleClass('rnd-loading', !!on).prop('disabled', !!on).attr('aria-busy', on ? 'true' : 'false');
+    }
+
     function rnd_delete(action, ids, question, messageSelector) {
         if (busy) {
             return;
@@ -232,13 +242,14 @@ jQuery(function ($) {
         return $.when(rnd_assets_refresh('css'), rnd_assets_refresh('js'));
     }
 
-    function rnd_assets_run(type, first) {
+    function rnd_assets_run(type, first, $button) {
         if (busy) {
             return;
         }
         busy = true;
         var $section = rnd_asset_section(type);
         $section.find('.rnd-assets-start, .rnd-assets-continue').prop('disabled', true);
+        rnd_loading($button, true);
         rnd_message($section.find('.rnd-assets-message'), 'Analizando archivos…', '');
 
         function next(summary) {
@@ -254,6 +265,7 @@ jQuery(function ($) {
             return rnd_assets_refresh_all().then(function () {
                 busy = false;
                 $section.find('.rnd-assets-start, .rnd-assets-continue').prop('disabled', false);
+                rnd_loading($section.find('.rnd-assets-start, .rnd-assets-continue'), false);
                 $section.find('.rnd-assets-continue').remove();
                 rnd_message(
                     $section.find('.rnd-assets-message'),
@@ -264,19 +276,20 @@ jQuery(function ($) {
         }, function (error) {
             busy = false;
             $section.find('.rnd-assets-start, .rnd-assets-continue').prop('disabled', false);
+            rnd_loading($section.find('.rnd-assets-start, .rnd-assets-continue'), false);
             rnd_message($section.find('.rnd-assets-message'), error || 'No se pudo completar el análisis.', 'error');
         });
     }
 
     $page.on('click', '.rnd-assets-start', function () {
-        rnd_assets_run($(this).data('type'), true);
+        rnd_assets_run($(this).data('type'), true, $(this));
     });
 
     $page.on('click', '.rnd-assets-continue', function () {
-        rnd_assets_run($(this).data('type'), false);
+        rnd_assets_run($(this).data('type'), false, $(this));
     });
 
-    function rnd_assets_exclude(type, items) {
+    function rnd_assets_exclude(type, items, $button) {
         if (busy) {
             return;
         }
@@ -290,14 +303,17 @@ jQuery(function ($) {
         }
 
         busy = true;
+        rnd_loading($button, true);
         rnd_message($section.find('.rnd-assets-message'), 'Guardando exclusiones…', '');
         rnd_post('assets_exclude', { items: items }).then(function (res) {
             return rnd_assets_refresh_all().then(function () {
                 busy = false;
+                rnd_loading($button, false);
                 rnd_message($section.find('.rnd-assets-message'), 'Listo: ' + res.excluded + ' archivo(s) excluido(s).', 'ok');
             });
         }, function (error) {
             busy = false;
+            rnd_loading($button, false);
             rnd_message($section.find('.rnd-assets-message'), error || 'No se pudo guardar.', 'error');
         });
     }
@@ -309,11 +325,12 @@ jQuery(function ($) {
             type: type,
             url: $button.data('url'),
             handle: $button.data('handle')
-        }]);
+        }], $button);
     });
 
     $page.on('click', '.rnd-assets-exclude-bulk', function () {
-        var type = $(this).data('type');
+        var $button = $(this);
+        var type = $button.data('type');
         var items = [];
         rnd_asset_section(type).find('.rnd-asset-check:checked').each(function () {
             items.push({
@@ -322,7 +339,7 @@ jQuery(function ($) {
                 handle: $(this).data('handle')
             });
         });
-        rnd_assets_exclude(type, items);
+        rnd_assets_exclude(type, items, $button);
     });
 
     $page.on('click', '.rnd-asset-include', function () {
@@ -338,14 +355,17 @@ jQuery(function ($) {
 
         busy = true;
         var $section = rnd_asset_section(type);
+        rnd_loading($button, true);
         rnd_message($section.find('.rnd-assets-message'), 'Guardando…', '');
         rnd_post('assets_include', { items: [{ type: type, key: key }] }).then(function () {
             return rnd_assets_refresh_all().then(function () {
                 busy = false;
+                rnd_loading($button, false);
                 rnd_message($section.find('.rnd-assets-message'), 'Archivo incluido de nuevo.', 'ok');
             });
         }, function (error) {
             busy = false;
+            rnd_loading($button, false);
             rnd_message($section.find('.rnd-assets-message'), error || 'No se pudo guardar.', 'error');
         });
     });
@@ -362,7 +382,9 @@ jQuery(function ($) {
             return;
         }
         var $form = $(this);
+        var $submit = $form.find('button[type="submit"], input[type="submit"]');
         busy = true;
+        rnd_loading($submit, true);
         var $message = $form.find('.rnd-settings-message');
         rnd_message($message, 'Guardando…', '');
         rnd_post('assets_config', {
@@ -371,10 +393,12 @@ jQuery(function ($) {
         }).then(function () {
             return rnd_assets_refresh_all().then(function () {
                 busy = false;
+                rnd_loading($submit, false);
                 rnd_message($message, 'Ajustes guardados.', 'ok');
             });
         }, function (error) {
             busy = false;
+            rnd_loading($submit, false);
             rnd_message($message, error || 'No se pudieron guardar los ajustes.', 'error');
         });
     });

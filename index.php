@@ -3,7 +3,7 @@
 Plugin Name: Rendimiento
 Plugin URI: https://github.com/franciscoblancojn/rendimiento
 Description: Detecta categorías de productos vacías y páginas sin enlaces desde la home, y permite eliminarlas.
-Version: 1.1.2
+Version: 1.1.3
 Author: franciscoblancojn
 Author URI: https://franciscoblanco.vercel.app/
 License: GPL2+

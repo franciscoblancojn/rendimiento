@@ -275,3 +275,28 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* Loader de acciones */
+@keyframes rnd-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rnd-loading {
+    opacity: .75;
+    pointer-events: none;
+}
+
+.rnd-loading::after {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 6px;
+    vertical-align: -2px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: rnd-spin .7s linear infinite;
+}

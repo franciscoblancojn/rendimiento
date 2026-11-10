@@ -60,7 +60,7 @@ $results = RND_ASSETS::results_for($type);
                 </td>
             </tr>
         </table>
-        <?php submit_button('Guardar ajustes', 'secondary', 'submit-' . $type, false); ?>
+        <button type="submit" class="button button-secondary">Guardar ajustes</button>
         <span class="rnd-settings-message"></span>
     </form>
 

@@ -4,6 +4,11 @@ Todos los cambios importantes del plugin Rendimiento. Formato basado en [Keep a 
 
 > ✍️ Antes de publicar, agrega arriba una sección `## [Sin publicar]` con los cambios. `npm run push-v -- patch|minor|major` la renombra a `## [X.Y.Z] - fecha`, y no publica si esa sección no existe.
 
+## [1.1.3] - 2026-11-09
+
+### ✨ Añadido
+- ⏳ Loader visual en los botones de acción (analizar, continuar, excluir, excluir seleccionados, incluir y guardar ajustes) mientras se ejecuta la petición.
+
 ## [1.1.2] - 2026-11-09
 
 ### 🐛 Corregido
