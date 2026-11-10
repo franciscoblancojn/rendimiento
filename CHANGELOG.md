@@ -4,6 +4,16 @@ Todos los cambios importantes del plugin Rendimiento. Formato basado en [Keep a 
 
 > ✍️ Antes de publicar, agrega arriba una sección `## [Sin publicar]` con los cambios. `npm run push-v -- patch|minor|major` la renombra a `## [X.Y.Z] - fecha`, y no publica si esa sección no existe.
 
+## [1.1.1] - 2026-11-09
+
+### 🐛 Corregido
+- 🔍 En sitios con LiteSpeed (u otro optimizador) la home devuelve un solo CSS/JS combinado y el análisis solo mostraba ese archivo. Ahora se pide la versión **sin optimizar** (`?LSCWP_CTRL=before_optimize`) y se listan los archivos individuales con su handle.
+- 🚫 Los archivos combinados por el optimizador ya no se pueden excluir por URL: quitarían todo el CSS/JS de la página. Se marcan como «Combinado» y se desactiva su exclusión.
+- 🧹 Al cambiar exclusiones o ajustes se purga automáticamente la caché de LiteSpeed (y WP Rocket si está activo).
+
+### ✨ Añadido
+- 🔌 Filtro `rnd_assets_unoptimized_urls` para añadir las URLs sin optimizar de otros optimizadores.
+
 ## [1.1.0] - 2026-11-09
 
 ### ✨ Añadido

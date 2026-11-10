@@ -2,7 +2,7 @@
 
 > Detecta categorías de productos vacías y páginas sin enlaces desde la home, y permite eliminarlas.
 
-**Versión:** 1.1.0 · **WordPress:** 5.8+ · **PHP:** 7.4+ · **WooCommerce:** opcional · **Licencia:** GPLv2+
+**Versión:** 1.1.1 · **WordPress:** 5.8+ · **PHP:** 7.4+ · **WooCommerce:** opcional · **Licencia:** GPLv2+
 
 📋 [Registro de cambios](CHANGELOG.md) · 🤖 [Reglas para IAs](AGENTS.md) · 📦 [Releases](https://github.com/franciscoblancojn/rendimiento/releases)
 
@@ -43,10 +43,15 @@ El plugin añade el menú **Rendimiento** con cuatro pestañas: dos análisis de
   otra página o generarse por JavaScript, así que el % no garantiza que sea seguro quitarlo.
 - Al excluir, el archivo deja de cargarse en **todo el sitio** (`wp_dequeue_style` / `wp_dequeue_script`).
   También se aplican `style_loader_tag` / `script_loader_tag` como red de seguridad.
+- **LiteSpeed y otros optimizadores:** la home normal trae un solo CSS/JS combinado. En ese caso el análisis
+  pide automáticamente la versión **sin optimizar** (`?LSCWP_CTRL=before_optimize`) para listar los archivos
+  individuales con su handle. Los archivos combinados se marcan como **«Combinado»** y no se pueden excluir
+  por URL: quitarían todo el CSS/JS de la página.
 - No se quita una librería de la que dependa otro archivo encolado.
 - **Modo prueba:** si se activa, las exclusiones solo se aplican a administradores conectados; los
   visitantes siguen viendo el sitio normal.
-- Si hay una caché (LiteSpeed, etc.), purgarla después de cambiar la lista.
+- Al cambiar la lista se purga automáticamente la caché de LiteSpeed (y WP Rocket si está activo). Si usas
+  otra caché, púrgala a mano para que el cambio se vea.
 - Solo detecta archivos enlazados desde el HTML de la home; los `<style>`/`<script>` inline y los
   añadidos por JavaScript no se pueden excluir desde aquí.
 

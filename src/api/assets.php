@@ -87,9 +87,10 @@ class RND_API_ASSETS
         }
 
         if (!$excluded) {
-            wp_send_json_error('No se recibieron archivos válidos.');
+            wp_send_json_error('No se recibieron archivos válidos (los combinados por el optimizador no se pueden excluir).');
         }
 
+        RND_ASSETS::purge_cache();
         RND_LOG_SERVICE::add('excluir_assets', ['count' => $excluded]);
         wp_send_json_success(['excluded' => $excluded]);
     }
@@ -117,6 +118,7 @@ class RND_API_ASSETS
             wp_send_json_error('No se pudo quitar el archivo de la lista.');
         }
 
+        RND_ASSETS::purge_cache();
         RND_LOG_SERVICE::add('incluir_assets', ['count' => $removed]);
         wp_send_json_success(['removed' => $removed]);
     }
@@ -135,6 +137,7 @@ class RND_API_ASSETS
             !empty($_POST['enabled']),
             !empty($_POST['test_mode'])
         );
+        RND_ASSETS::purge_cache();
 
         RND_LOG_SERVICE::add('guardar_ajustes_assets', [
             'enabled' => !empty($_POST['enabled']),

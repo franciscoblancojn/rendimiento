@@ -96,7 +96,8 @@ class RND_ASSETS
 
         $url = esc_url_raw(trim((string) $url));
         $key = self::normalize($url);
-        if ('' === $key) {
+        // Nunca excluir un archivo combinado por el optimizador: se quitaría todo el CSS/JS.
+        if ('' === $key || self::is_combined_url($url)) {
             return false;
         }
 
@@ -130,6 +131,22 @@ class RND_ASSETS
         update_option(self::OPTION, $all, false);
 
         return true;
+    }
+
+    /**
+     * Purga la caché del optimizador al cambiar las exclusiones. LiteSpeed es la del sitio;
+     * el filtro permite añadir otras cachés.
+     */
+    public static function purge_cache()
+    {
+        if (has_action('litespeed_purge_all')) {
+            do_action('litespeed_purge_all');
+        }
+        if (function_exists('rocket_clean_domain')) {
+            rocket_clean_domain();
+        }
+
+        do_action('rnd_assets_purge_cache');
     }
 
     public static function is_excluded($type, $url, $handle = '')
@@ -293,6 +310,31 @@ class RND_ASSETS
 
         $html = $response['body'];
         $assets = self::extract_assets($html, $home);
+        $optimized = false;
+
+        // Con LiteSpeed (u otro optimizador) la home trae un solo CSS/JS combinado, sin los
+        // handles de WordPress. En ese caso se pide la versión «antes de optimizar» para poder
+        // listar los archivos individuales y excluirlos por handle. La exclusión sigue siendo
+        // del servidor: wp_dequeue_* corre antes de que LiteSpeed combine la página.
+        if (self::has_combined_asset($assets)) {
+            foreach (self::unoptimized_urls($home) as $url) {
+                $original = self::fetch($url, 'html', self::HOME_MAX_BYTES);
+                if (isset($original['error'])) {
+                    continue;
+                }
+                $original_assets = self::extract_assets($original['body'], $home);
+                if (!$original_assets || self::has_combined_asset($original_assets)) {
+                    continue;
+                }
+                if (count($original_assets) > count($assets)) {
+                    $html = $original['body'];
+                    $assets = $original_assets;
+                    $optimized = true;
+                    break;
+                }
+            }
+        }
+
         if (!$assets) {
             return ['error' => 'No se encontraron archivos CSS ni JS en la home.'];
         }
@@ -305,6 +347,7 @@ class RND_ASSETS
         $state = [
             'home' => $home,
             'assets' => $assets,
+            'optimized' => $optimized,
             'index' => 0,
             'results' => [],
             'errors' => [],
@@ -313,6 +356,53 @@ class RND_ASSETS
         set_transient(self::STATE, $state, HOUR_IN_SECONDS);
 
         return self::summary($state);
+    }
+
+    /**
+     * URLs de la misma página sin optimizar. LiteSpeed es la que usa el sitio; el filtro
+     * permite añadir las de otros optimizadores (Autoptimize, WP Rocket…).
+     */
+    private static function unoptimized_urls($home)
+    {
+        $urls = [add_query_arg('LSCWP_CTRL', 'before_optimize', $home)];
+
+        return (array) apply_filters('rnd_assets_unoptimized_urls', $urls, $home);
+    }
+
+    private static function has_combined_asset($assets)
+    {
+        foreach ((array) $assets as $asset) {
+            if (!empty($asset['url']) && self::is_combined_url($asset['url'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * ¿Es un archivo generado por el optimizador (combinado/minificado)? Excluirlo por URL
+     * quitaría todo el CSS/JS de la página, así que no se ofrece como exclusión.
+     */
+    public static function is_combined_url($url)
+    {
+        $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
+        if ('' === $path) {
+            return false;
+        }
+
+        $patterns = [
+            '#/wp-content/litespeed/(css|js|ucss)/#',
+            '#/wp-content/uploads/autoptimize/#',
+            '#/wp-content/cache/(autoptimize|min|busting|wp-rocket|wpfc)/#',
+        ];
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -366,11 +456,15 @@ class RND_ASSETS
 
         $css = 0;
         $js = 0;
+        $combined = 0;
         foreach ($results as $item) {
             if ('css' === $item['type']) {
                 $css++;
             } else {
                 $js++;
+            }
+            if (!empty($item['combined'])) {
+                $combined++;
             }
         }
 
@@ -378,11 +472,13 @@ class RND_ASSETS
             'date' => current_time('mysql'),
             'timestamp' => time(),
             'home' => $state['home'],
+            'optimized' => !empty($state['optimized']),
             'results' => $results,
             'errors' => array_slice($state['errors'], 0, 50),
             'error_count' => count($state['errors']),
             'css_count' => $css,
             'js_count' => $js,
+            'combined_count' => $combined,
             'duration' => max(0, time() - (int) $state['started']),
         ];
         set_transient(self::REPORT, $report, DAY_IN_SECONDS);
@@ -391,14 +487,17 @@ class RND_ASSETS
 
         RND_LOG_SERVICE::add('analisis_assets', [
             'home' => $state['home'],
+            'optimized' => !empty($state['optimized']),
             'css' => $css,
             'js' => $js,
+            'combined' => $combined,
             'errors' => count($state['errors']),
         ]);
 
         return [
             'css' => $css,
             'js' => $js,
+            'combined' => $combined,
             'errors' => count($state['errors']),
             'duration' => $report['duration'],
         ];
@@ -452,6 +551,7 @@ class RND_ASSETS
             'size' => strlen($content),
             'score' => (int) $score['score'],
             'reason' => $score['reason'],
+            'combined' => self::is_combined_url($asset['url']),
         ];
     }
 

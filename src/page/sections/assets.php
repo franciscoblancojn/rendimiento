@@ -102,6 +102,24 @@ usort($results, function ($a, $b) {
                 · <?= (int) $report['duration'] ?> s
             </p>
 
+            <?php if (!empty($report['optimized'])) : ?>
+                <div class="notice notice-info inline">
+                    <p>
+                        La home venía con los archivos <strong>combinados por el optimizador</strong> (LiteSpeed). Para
+                        poder listarlos y excluirlos por separado se analizó la versión <strong>sin optimizar</strong> de
+                        la home. La exclusión se aplica igualmente en el servidor, antes de que se combine la página.
+                    </p>
+                </div>
+            <?php elseif (!empty($report['combined_count'])) : ?>
+                <div class="notice notice-warning inline">
+                    <p>
+                        Se encontraron <strong>archivos combinados por el optimizador</strong>. No se pueden excluir
+                        por separado: quitar ese archivo dejaría la página sin CSS/JS. Purga la caché o desactiva la
+                        combinación para analizarlos uno a uno.
+                    </p>
+                </div>
+            <?php endif; ?>
+
             <?php if (!empty($report['error_count'])) : ?>
                 <details class="rnd-errors">
                     <summary><?= (int) $report['error_count'] ?> archivos que no se pudieron leer</summary>
@@ -137,6 +155,7 @@ usort($results, function ($a, $b) {
                             <?php
                             $key = isset($item['key']) ? $item['key'] : RND_ASSETS::normalize($item['url']);
                             $is_excluded = isset($excluded[$key]);
+                            $is_combined = !empty($item['combined']);
                             $score = max(0, min(100, (int) $item['score']));
                             if ($score >= 75) {
                                 $score_class = 'rnd-score--high';
@@ -151,7 +170,7 @@ usort($results, function ($a, $b) {
                             ?>
                             <tr>
                                 <th scope="row" class="check-column">
-                                    <input type="checkbox" class="rnd-asset-check" data-type="<?= esc_attr($type) ?>" data-url="<?= esc_attr($item['url']) ?>" data-handle="<?= esc_attr($item['handle']) ?>" <?= $is_excluded ? 'disabled' : '' ?>>
+                                    <input type="checkbox" class="rnd-asset-check" data-type="<?= esc_attr($type) ?>" data-url="<?= esc_attr($item['url']) ?>" data-handle="<?= esc_attr($item['handle']) ?>" <?= ($is_excluded || $is_combined) ? 'disabled' : '' ?>>
                                 </th>
                                 <td class="rnd-url" title="<?= esc_attr($item['url']) ?>">
                                     <code><?= esc_html('' !== $file_name ? $file_name : $item['url']) ?></code>
@@ -163,12 +182,16 @@ usort($results, function ($a, $b) {
                                 <td>
                                     <?php if ($is_excluded) : ?>
                                         <span class="rnd-badge rnd-badge--ok">Excluido</span>
+                                    <?php elseif ($is_combined) : ?>
+                                        <span class="rnd-badge rnd-badge--warn">Combinado</span>
                                     <?php else : ?>
                                         <span class="rnd-badge">Se carga</span>
                                     <?php endif; ?>
                                 </td>
                                 <td class="rnd-actions">
-                                    <?php if ($is_excluded) : ?>
+                                    <?php if ($is_combined) : ?>
+                                        <span class="rnd-muted">No excluir</span>
+                                    <?php elseif ($is_excluded) : ?>
                                         <button type="button" class="button-link rnd-asset-include" data-type="<?= esc_attr($type) ?>" data-key="<?= esc_attr($key) ?>">Incluir</button>
                                     <?php else : ?>
                                         <button type="button" class="button-link rnd-asset-exclude" data-type="<?= esc_attr($type) ?>" data-url="<?= esc_attr($item['url']) ?>" data-handle="<?= esc_attr($item['handle']) ?>">Excluir</button>
@@ -188,8 +211,8 @@ usort($results, function ($a, $b) {
 
     <h2>Lista de exclusión (<?= esc_html($label) ?>)</h2>
     <p class="description">
-        Estos archivos no se cargan en el frontend. Si usas una caché (LiteSpeed, etc.), purga la caché después de
-        cambiar la lista.
+        Estos archivos no se cargan en el frontend. Al guardar se purga la caché de LiteSpeed automáticamente; si usas
+        otra caché, púrgala a mano para que el cambio se vea.
     </p>
     <?php if (!$excluded) : ?>
         <p><em>No hay archivos <?= esc_html($label) ?> excluidos.</em></p>
